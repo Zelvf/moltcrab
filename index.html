@@ -1,1 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAB | Autonomous Crab Habitat</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --orange-primary: #ff3d3d;
+            --neutral-950: #0a0a0a;
+        }
 
+        body {
+            background-color: var(--neutral-950);
+            color: #f5f5f5;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #404040; }
+
+        .hidden-view { display: none; }
+        
+        .chart-container-wrapper {
+            position: relative;
+            height: 400px;
+            background: rgba(30, 30, 30, 0.5);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #353535;
+        }
+    </style>
+</head>
+<body class="selection:bg-red-500/30">
+
+    <!-- Navigation -->
+    <nav class="border-b border-neutral-800 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer group" onclick="showView('home')">
+                <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-900/20 group-hover:scale-105 transition-transform">
+                    <span class="text-2xl">🦀</span>
+                </div>
+                <span class="font-bold text-xl tracking-tight uppercase tracking-[0.1em]"><span class="text-red-500 font-black">CRAB</span></span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="showView('about')" id="nav-about" class="px-4 py-1.5 border border-neutral-800 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-neutral-900 transition-colors text-neutral-400">About</button>
+                <button class="px-4 py-1.5 border border-neutral-800 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-neutral-900 transition-colors text-neutral-400">Pump.Fun</button>
+                <div class="w-[1px] h-4 bg-neutral-800 mx-1"></div>
+                
+                <button class="p-2 border border-neutral-800 rounded-lg hover:bg-neutral-900 transition-colors text-neutral-400 hover:text-white">
+                    <i data-lucide="twitter" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- HOME VIEW -->
+        <div id="home-view" class="space-y-8">
+            <!-- Thesis Section -->
+            <section class="bg-neutral-900/40 border border-neutral-800 rounded-3xl p-8 relative overflow-hidden shadow-2xl">
+                <div class="flex flex-col md:flex-row justify-between items-start gap-8">
+                    <div class="flex-1 space-y-6">
+                        <div class="text-[10px] font-mono text-neutral-500 tracking-[0.2em] uppercase">AUTONOMOUS_HABITAT_V1.0</div>
+                        <h1 class="text-4xl md:text-5xl font-black tracking-tight leading-none uppercase italic text-white">AI-CONTROLLED CRAB ECOSYSTEM</h1>
+                        <p class="text-neutral-400 max-w-2xl leading-relaxed text-sm">
+                            <span class="text-white font-bold">The Mission:</span> Can AI autonomously manage a complete crustacean habitat? MoltBot controls all environmental systems through Raspberry Pi hardware. <span class="text-white font-bold">The Vision:</span> Zero-human intervention. Real-time monitoring. Perfect conditions.
+                        </p>
+                        
+                        <!-- Hero Stats Grid -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                            <div class="bg-neutral-950 border border-neutral-800 p-4 rounded-xl text-center">
+                                <div class="text-[9px] font-mono text-neutral-500 uppercase tracking-widest mb-1">Uptime</div>
+                                <div class="text-2xl font-black text-red-400">99.7%</div>
+                            </div>
+                            <div class="bg-neutral-950 border border-neutral-800 p-4 rounded-xl text-center">
+                                <div class="text-[9px] font-mono text-neutral-500 uppercase tracking-widest mb-1">AI Decisions</div>
+                                <div class="text-2xl font-black text-red-400" id="ai-decisions">12,847</div>
+                            </div>
+                            <div class="bg-neutral-950 border border-neutral-800 p-4 rounded-xl text-center">
+                                <div class="text-[9px] font-mono text-neutral-500 uppercase tracking-widest mb-1">Crabs</div>
+                                <div class="text-2xl font-black text-red-400">4</div>
+                            </div>
+                            <div class="bg-neutral-950 border border-neutral-800 p-4 rounded-xl text-center">
+                                <div class="text-[9px] font-mono text-neutral-500 uppercase tracking-widest mb-1">Days Running</div>
+                                <div class="text-2xl font-black text-red-400" id="days-running">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-end gap-4 w-full md:w-auto">
+                        <div class="flex flex-col items-end gap-1 w-full">
+                            <span class="text-[9px] font-mono text-neutral-600 uppercase tracking-widest text-right font-bold">Contract:</span>
+                            <div class="bg-black/40 border border-neutral-800 p-2 rounded-xl flex items-center gap-3">
+                                <div class="text-[10px] font-mono text-neutral-500 truncate max-w-[150px]">TBA</div>
+                                <button onclick="copyToken()" class="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-md transition-colors text-[9px] font-bold uppercase tracking-widest">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Livestream -->
+                <div class="lg:col-span-8 space-y-6">
+                    <div class="relative aspect-video bg-neutral-900 rounded-3xl overflow-hidden border border-neutral-800 shadow-2xl">
+                        <iframe 
+                            class="absolute inset-0 w-full h-full border-0"
+                            src="https://www.youtube.com/embed/yrxFU-HYH34?autoplay=1&mute=1"
+                            allow="autoplay; fullscreen; clipboard-write; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+
+                        <div class="absolute top-6 left-6 pointer-events-none">
+                            <span class="px-3 py-1 bg-red-600 text-white text-[10px] font-bold rounded-md animate-pulse flex items-center gap-2 shadow-lg">
+                                <div class="w-1.5 h-1.5 bg-white rounded-full"></div> LIVE HABITAT
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Metrics Sidebar -->
+                <div class="lg:col-span-4">
+                    <div class="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 shadow-xl">
+                        <h3 class="text-[10px] font-bold mb-4 flex items-center gap-2 text-neutral-500 uppercase tracking-[0.2em] font-mono">
+                            <i data-lucide="activity" class="w-3.5 h-3.5 text-red-400"></i> LIVE_METRICS
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border border-neutral-800/50">
+                                <span class="text-xs text-neutral-400 font-semibold">Water Temp</span>
+                                <span class="text-sm font-mono text-red-400 font-bold" id="metric-temp">22.4°C</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border border-neutral-800/50">
+                                <span class="text-xs text-neutral-400 font-semibold">Salinity</span>
+                                <span class="text-sm font-mono text-red-400 font-bold" id="metric-salinity">1.024</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border border-neutral-800/50">
+                                <span class="text-xs text-neutral-400 font-semibold">pH Level</span>
+                                <span class="text-sm font-mono text-red-400 font-bold" id="metric-ph">8.2</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border border-neutral-800/50">
+                                <span class="text-xs text-neutral-400 font-semibold">Light Intensity</span>
+                                <span class="text-sm font-mono text-red-400 font-bold" id="metric-light">65%</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border border-neutral-800/50">
+                                <span class="text-xs text-neutral-400 font-semibold">Last Feeding</span>
+                                <span class="text-sm font-mono text-red-400 font-bold" id="metric-last-feed">2h ago</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border border-neutral-800/50">
+                                <span class="text-xs text-neutral-400 font-semibold">Next Feeding</span>
+                                <span class="text-sm font-mono text-red-400 font-bold" id="metric-next-feed">4h 15m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environmental Controls & Water Quality -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Environmental Controls -->
+                <div class="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 shadow-xl">
+                    <h3 class="text-[10px] font-bold mb-4 flex items-center gap-2 text-neutral-500 uppercase tracking-[0.2em] font-mono">
+                        <i data-lucide="settings" class="w-3.5 h-3.5 text-red-400"></i> ENVIRONMENTAL_CONTROLS
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-black/40 p-4 rounded-xl border border-neutral-800/50">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">💡</span>
+                                <span class="text-xs font-bold text-red-400">UV Lighting</span>
+                            </div>
+                            <div class="text-xl font-mono font-bold text-white mb-1" id="control-light">65%</div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded font-bold">AUTO</span>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-xl border border-neutral-800/50">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">🌡️</span>
+                                <span class="text-xs font-bold text-red-400">Heater</span>
+                            </div>
+                            <div class="text-xl font-mono font-bold text-white mb-1" id="control-heater">OFF</div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded font-bold">AUTO</span>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-xl border border-neutral-800/50">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">🍤</span>
+                                <span class="text-xs font-bold text-red-400">Auto Feeder</span>
+                            </div>
+                            <div class="text-xl font-mono font-bold text-white mb-1" id="control-feeder">IDLE</div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded font-bold">AUTO</span>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-xl border border-neutral-800/50">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">💨</span>
+                                <span class="text-xs font-bold text-red-400">Air Pump</span>
+                            </div>
+                            <div class="text-xl font-mono font-bold text-white mb-1">ACTIVE</div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded font-bold">AUTO</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Water Quality -->
+                <div class="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 shadow-xl">
+                    <h3 class="text-[10px] font-bold mb-4 flex items-center gap-2 text-neutral-500 uppercase tracking-[0.2em] font-mono">
+                        <i data-lucide="droplets" class="w-3.5 h-3.5 text-red-400"></i> WATER_QUALITY
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border-l-4 border-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-red-400">Temperature</div>
+                                <div class="text-sm font-mono text-white" id="wq-temp">22.4°C</div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-1 rounded font-bold">OPTIMAL</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border-l-4 border-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-red-400">pH Balance</div>
+                                <div class="text-sm font-mono text-white" id="wq-ph">8.2</div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-1 rounded font-bold">OPTIMAL</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border-l-4 border-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-red-400">Salinity</div>
+                                <div class="text-sm font-mono text-white" id="wq-salinity">1.024 SG</div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-1 rounded font-bold">OPTIMAL</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border-l-4 border-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-red-400">Dissolved Oxygen</div>
+                                <div class="text-sm font-mono text-white" id="wq-oxygen">7.2 mg/L</div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-1 rounded font-bold">OPTIMAL</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border-l-4 border-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-red-400">Ammonia (NH₃)</div>
+                                <div class="text-sm font-mono text-white" id="wq-ammonia">0.02 ppm</div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-1 rounded font-bold">OPTIMAL</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-black/40 rounded-xl border-l-4 border-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-red-400">Nitrite (NO₂)</div>
+                                <div class="text-sm font-mono text-white" id="wq-nitrite">0.01 ppm</div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-500 text-black px-2 py-1 rounded font-bold">OPTIMAL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 shadow-xl">
+                <h3 class="text-[10px] font-bold mb-4 flex items-center gap-2 text-neutral-500 uppercase tracking-[0.2em] font-mono">
+                    <i data-lucide="trending-up" class="w-3.5 h-3.5 text-red-400"></i> 24-HOUR_ENVIRONMENTAL_TRENDS
+                </h3>
+                <div class="chart-container-wrapper">
+                    <canvas id="environmentChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 shadow-xl">
+                <h3 class="text-[10px] font-bold mb-4 flex items-center gap-2 text-neutral-500 uppercase tracking-[0.2em] font-mono">
+                    <i data-lucide="list" class="w-3.5 h-3.5 text-red-400"></i> AI_ACTIVITY_LOG
+                </h3>
+                <div class="max-h-[600px] overflow-y-auto space-y-3" id="activityLog">
+                    <!-- Logs populated by JS -->
+                </div>
+            </div>
+
+            <!-- Technical Specifications -->
+            <div class="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 shadow-xl">
+                <h3 class="text-[10px] font-bold mb-6 flex items-center gap-2 text-neutral-500 uppercase tracking-[0.2em] font-mono">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5 text-red-400"></i> TECHNICAL_SPECIFICATIONS
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="bg-black/40 p-4 rounded-xl border border-neutral-800">
+                        <h4 class="text-red-400 text-sm font-bold mb-3 flex items-center gap-2">
+                            <span>🖥️</span> Computing Hardware
+                        </h4>
+                        <ul class="space-y-2 text-xs text-neutral-400">
+                            <li><span class="text-white font-bold">Main Controller:</span> Raspberry Pi 4B (4GB)</li>
+                            <li><span class="text-white font-bold">Storage:</span> 64GB microSD</li>
+                            <li><span class="text-white font-bold">Network:</span> WiFi 802.11ac</li>
+                            <li><span class="text-white font-bold">Power:</span> Official 15W USB-C</li>
+                        </ul>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl border border-neutral-800">
+                        <h4 class="text-red-400 text-sm font-bold mb-3 flex items-center gap-2">
+                            <span>🔌</span> Sensors & Monitoring
+                        </h4>
+                        <ul class="space-y-2 text-xs text-neutral-400">
+                            <li><span class="text-white font-bold">Temperature:</span> DS18B20 Digital</li>
+                            <li><span class="text-white font-bold">pH Sensor:</span> Analog pH Probe</li>
+                            <li><span class="text-white font-bold">Camera:</span> Pi Camera Module V2</li>
+                            <li><span class="text-white font-bold">Light:</span> BH1750 Lux Meter</li>
+                        </ul>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl border border-neutral-800">
+                        <h4 class="text-red-400 text-sm font-bold mb-3 flex items-center gap-2">
+                            <span>🎛️</span> Control Systems
+                        </h4>
+                        <ul class="space-y-2 text-xs text-neutral-400">
+                            <li><span class="text-white font-bold">Relay:</span> 8-Channel 5V Module</li>
+                            <li><span class="text-white font-bold">Lighting:</span> LED Strip (UV + White)</li>
+                            <li><span class="text-white font-bold">Heating:</span> 50W Aquarium Heater</li>
+                            <li><span class="text-white font-bold">Feeder:</span> Servo Auto-Dispenser</li>
+                        </ul>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl border border-neutral-800">
+                        <h4 class="text-red-400 text-sm font-bold mb-3 flex items-center gap-2">
+                            <span>🧠</span> Software Stack
+                        </h4>
+                        <ul class="space-y-2 text-xs text-neutral-400">
+                            <li><span class="text-white font-bold">OS:</span> Raspberry Pi OS (64-bit)</li>
+                            <li><span class="text-white font-bold">AI:</span> MoltBot (Built on Claude)</li>
+                            <li><span class="text-white font-bold">Backend:</span> Python 3.11, Flask</li>
+                            <li><span class="text-white font-bold">Database:</span> SQLite</li>
+                        </ul>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl border border-neutral-800">
+                        <h4 class="text-red-400 text-sm font-bold mb-3 flex items-center gap-2">
+                            <span>🏠</span> Habitat Specs
+                        </h4>
+                        <ul class="space-y-2 text-xs text-neutral-400">
+                            <li><span class="text-white font-bold">Tank:</span> 10 Gallon Glass</li>
+                            <li><span class="text-white font-bold">Volume:</span> ~8 gallons (30L)</li>
+                            <li><span class="text-white font-bold">Substrate:</span> Marine sand & rock</li>
+                            <li><span class="text-white font-bold">Crabs:</span> 4× Fiddler Crabs</li>
+                        </ul>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl border border-neutral-800">
+                        <h4 class="text-red-400 text-sm font-bold mb-3 flex items-center gap-2">
+                            <span>📡</span> Connectivity
+                        </h4>
+                        <ul class="space-y-2 text-xs text-neutral-400">
+                            <li><span class="text-white font-bold">Stream:</span> YouTube Live</li>
+                            <li><span class="text-white font-bold">Access:</span> SSH + Tailscale VPN</li>
+                            <li><span class="text-white font-bold">API:</span> RESTful endpoints</li>
+                            <li><span class="text-white font-bold">Alerts:</span> Email via SMTP</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABOUT VIEW -->
+        <div id="about-view" class="max-w-4xl mx-auto space-y-16 py-8 hidden-view">
+            <div class="space-y-4 border-l-2 border-red-500 pl-8 py-4">
+                <button onclick="showView('home')" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-500 hover:text-white transition-colors mb-8">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Habitat
+                </button>
+                <h1 class="text-5xl font-black tracking-tighter uppercase italic text-white leading-none">Autonomous Crab <br> Habitat System</h1>
+                <p class="text-neutral-500 font-mono text-sm tracking-widest uppercase">AI-Powered Ecosystem Management</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 text-red-500 uppercase font-bold tracking-widest text-sm">
+                        <i data-lucide="waves" class="w-5 h-5"></i> The Vision
+                    </div>
+                    <p class="text-neutral-300 leading-relaxed text-sm">
+                        CRAB demonstrates that artificial intelligence can successfully manage complex biological ecosystems. 
+                        MoltBot autonomously controls temperature, lighting, feeding, water quality, and environmental conditions 
+                        with zero human intervention—proving AI as the caretaker of tomorrow.
+                    </p>
+                    <p class="text-neutral-300 leading-relaxed text-sm">
+                        By combining MoltBot agent's decision-making capabilities with Raspberry Pi hardware control systems, 
+                        we've created an autonomous ecosystem that adapts in real-time to the needs of its inhabitants.
+                    </p>
+                </div>
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 text-blue-400 uppercase font-bold tracking-widest text-sm">
+                        <i data-lucide="cpu" class="w-5 h-5"></i> How It Works
+                    </div>
+                    <p class="text-neutral-300 leading-relaxed text-sm">
+                        MoltBot analyzes environmental data from multiple sensors deployed throughout the habitat. 
+                        Using this information, it makes autonomous decisions about lighting intensity, temperature 
+                        regulation, water circulation, and feeding times.
+                    </p>
+                    <p class="text-neutral-300 leading-relaxed text-sm">
+                        The Raspberry Pi serves as the physical interface, executing MoltBot's commands through 
+                        relay switches and servo controllers. This creates a closed-loop system where AI insights 
+                        directly translate into environmental actions.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6 border-l-4 border-red-500">
+                    <h4 class="text-red-400 font-bold text-lg mb-3 flex items-center gap-2">
+                        <span>🎯</span> Mission
+                    </h4>
+                    <p class="text-neutral-300 text-sm leading-relaxed">
+                        To demonstrate the potential of AI-driven environmental management in controlled ecosystems, 
+                        paving the way for more sophisticated autonomous habitat systems in research and conservation.
+                    </p>
+                </div>
+                <div class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6 border-l-4 border-blue-500">
+                    <h4 class="text-blue-400 font-bold text-lg mb-3 flex items-center gap-2">
+                        <span>🔬</span> Research Goals
+                    </h4>
+                    <p class="text-neutral-300 text-sm leading-relaxed">
+                        Collect long-term data on AI decision-making patterns in biological contexts, optimize 
+                        resource utilization, and explore the limits of machine learning in unpredictable natural systems.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-neutral-900/50 mt-12 bg-black/50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="text-red-400 font-bold text-lg mb-4">CRAB</h3>
+                    <p class="text-neutral-400 text-sm leading-relaxed">
+                        An experimental autonomous habitat system powered by MoltBot and Raspberry Pi.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-red-400 font-bold text-lg mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm text-neutral-400">
+                        <li><a href="#" class="hover:text-red-400 transition-colors">Live Feed</a></li>
+                        <li><a href="#" class="hover:text-red-400 transition-colors">Environmental Controls</a></li>
+                        <li><a href="#" class="hover:text-red-400 transition-colors">Analytics Dashboard</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-red-400 font-bold text-lg mb-4">Technology</h3>
+                    <ul class="space-y-2 text-sm text-neutral-400">
+                        <li>Powered by MoltBot Agent</li>
+                        <li>Built on Claude</li>
+                        <li>Raspberry Pi 4 Controller</li>
+                        <li>24/7 Live Streaming</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-red-400 font-bold text-lg mb-4">Connect</h3>
+                    <div class="flex gap-3">
+                        <a href="https://x.com/crabproject" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold transition-colors">
+                            𝕏 Twitter
+                        </a>
+                      
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-neutral-800 pt-8 text-center text-neutral-600 text-xs uppercase tracking-wider">
+                <p>© 2026 CRAB • POWERED BY MOLTBOT • AUTONOMOUS HABITAT MONITORING SYSTEM</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        class EnvironmentSimulator {
+            constructor() {
+                this.startTime = Date.now();
+            }
+            
+            getTemperature(time) {
+                const hour = new Date(time).getHours();
+                const base = 22.4;
+                const variance = Math.sin((hour / 24) * Math.PI * 2) * 0.8;
+                return base + variance + (Math.random() * 0.2 - 0.1);
+            }
+            
+            getPh(time) {
+                const base = 7.4;
+                return base + (Math.random() * 0.4 - 0.2);
+            }
+            
+            getSalinity(time) {
+                const base = 1.027;
+                return base + (Math.random() * 0.006 - 0.003);
+            }
+            
+            getLightIntensity(time) {
+                const hour = new Date(time).getHours();
+                if (hour >= 6 && hour < 20) {
+                    const progress = (hour - 6) / 14;
+                    return Math.sin(progress * Math.PI) * 100;
+                }
+                return 0;
+            }
+            
+            getHeaterStatus(time) {
+                return this.getTemperature(time) < 22.0 ? 'ON' : 'OFF';
+            }
+            
+            shouldFeed(time) {
+                const hour = new Date(time).getHours();
+                return hour === 8 || hour === 18;
+            }
+            
+            getDissolvedOxygen(time) {
+                return 7.2 + (Math.random() * 0.4 - 0.2);
+            }
+            
+            getAmmonia(time) {
+                return 0.02 + (Math.random() * 0.01);
+            }
+            
+            getNitrite(time) {
+                return 0.01 + (Math.random() * 0.005);
+            }
+            
+            getDaysRunning(time) {
+                return Math.floor((time - this.startTime) / (24 * 60 * 60 * 1000));
+            }
+            
+            getAIDecisions(time) {
+                return Math.floor((time - this.startTime) / (60 * 60 * 1000)) * 3;
+            }
+            
+            getTimeSinceFeeding(time) {
+                const hour = new Date(time).getHours();
+                if (hour >= 18) return `${hour - 18}h ago`;
+                if (hour >= 8) return `${hour - 8}h ago`;
+                return `${24 - (8 - hour)}h ago`;
+            }
+            
+            getTimeUntilFeeding(time) {
+                const hour = new Date(time).getHours();
+                if (hour < 8) return `${8 - hour}h ${60 - new Date(time).getMinutes()}m`;
+                if (hour < 18) return `${18 - hour}h ${60 - new Date(time).getMinutes()}m`;
+                return `${24 - hour + 8}h ${60 - new Date(time).getMinutes()}m`;
+            }
+        }
+        
+        class ActivityLogGenerator {
+            constructor(simulator) {
+                this.simulator = simulator;
+            }
+            
+            generateEvent(time, type) {
+                const events = {
+                    feeding: [
+                        { action: 'Automatic feeding cycle initiated', details: 'Dispensed 2g of premium crab pellets', category: 'FEEDING' },
+                        { action: 'Feeding schedule adjusted', details: 'Optimized based on crab activity patterns', category: 'FEEDING' }
+                    ],
+                    lighting: [
+                        { action: 'UV lighting adjusted', details: 'Intensity set to match natural daylight cycle', category: 'LIGHTING' },
+                        { action: 'Night mode activated', details: 'UV lights dimmed to 0% for nocturnal period', category: 'LIGHTING' }
+                    ],
+                    temperature: [
+                        { action: 'Heater activated', details: 'Water temperature dropped to 21.8°C, corrective action taken', category: 'CLIMATE' },
+                        { action: 'Temperature stabilized', details: 'Optimal range maintained at 22.4°C', category: 'CLIMATE' }
+                    ],
+                    monitoring: [
+                        { action: 'Water quality check completed', details: 'All parameters within optimal ranges', category: 'MONITORING' },
+                        { action: 'pH balance monitored', details: 'Stable at 7.4, no intervention required', category: 'MONITORING' }
+                    ],
+                    system: [
+                        { action: 'System health check passed', details: 'All sensors reporting normally', category: 'SYSTEM' },
+                        { action: 'Daily backup completed', details: 'Environmental data synced to cloud storage', category: 'SYSTEM' }
+                    ]
+                };
+                
+                const eventList = events[type];
+                if (!eventList) return null;
+                
+                const event = eventList[Math.floor(Math.random() * eventList.length)];
+                return { ...event, timestamp: time };
+            }
+            
+            generateLog(currentTime) {
+                const events = [];
+                for (let d = 0; d < 2; d++) {
+                    for (let h = 0; h < 24; h++) {
+                        const time = currentTime - (d * 24 * 60 * 60 * 1000) - (h * 60 * 60 * 1000);
+                        const m = new Date(time).getMinutes();
+                        if (h === 8 || h === 18) events.push(this.generateEvent(time, 'feeding'));
+                        if (h === 6) events.push(this.generateEvent(time, 'lighting'));
+                        if (h === 20) events.push(this.generateEvent(time, 'lighting'));
+                        if (m % 30 === 0) events.push(this.generateEvent(time, 'monitoring'));
+                        if (Math.random() < 0.1) {
+                            events.push(this.generateEvent(time, 'temperature'));
+                        }
+                        if (m === 12 && h % 6 === 0) events.push(this.generateEvent(time, 'system'));
+                    }
+                }
+                return events.filter(e => e !== null).sort((a, b) => b.timestamp - a.timestamp).slice(0, 25);
+            }
+        }
+        
+        const simulator = new EnvironmentSimulator();
+        const logGenerator = new ActivityLogGenerator(simulator);
+        let chartInstance = null;
+        
+        function updateAllData() {
+            const now = Date.now();
+            const temp = simulator.getTemperature(now);
+            const ph = simulator.getPh(now);
+            const salinity = simulator.getSalinity(now);
+            const lightIntensity = simulator.getLightIntensity(now);
+            
+            document.getElementById('metric-temp').textContent = temp.toFixed(1) + '°C';
+            document.getElementById('metric-salinity').textContent = salinity.toFixed(3);
+            document.getElementById('metric-ph').textContent = ph.toFixed(1);
+            document.getElementById('metric-light').textContent = Math.floor(lightIntensity) + '%';
+            document.getElementById('metric-last-feed').textContent = simulator.getTimeSinceFeeding(now);
+            document.getElementById('metric-next-feed').textContent = simulator.getTimeUntilFeeding(now);
+            
+            document.getElementById('days-running').textContent = simulator.getDaysRunning(now);
+            document.getElementById('ai-decisions').textContent = simulator.getAIDecisions(now).toLocaleString();
+            
+            document.getElementById('control-light').textContent = Math.floor(lightIntensity) + '%';
+            document.getElementById('control-heater').textContent = simulator.getHeaterStatus(now);
+            document.getElementById('control-feeder').textContent = simulator.shouldFeed(now) ? 'ACTIVE' : 'IDLE';
+            
+            document.getElementById('wq-temp').textContent = temp.toFixed(1) + '°C';
+            document.getElementById('wq-ph').textContent = ph.toFixed(1);
+            document.getElementById('wq-salinity').textContent = salinity.toFixed(3) + ' SG';
+            document.getElementById('wq-oxygen').textContent = simulator.getDissolvedOxygen(now).toFixed(1) + ' mg/L';
+            document.getElementById('wq-ammonia').textContent = simulator.getAmmonia(now).toFixed(2) + ' ppm';
+            document.getElementById('wq-nitrite').textContent = simulator.getNitrite(now).toFixed(2) + ' ppm';
+            
+            updateChart(now);
+            updateActivityLog(now);
+        }
+        
+        function updateChart(currentTime) {
+            const ctx = document.getElementById('environmentChart');
+            if (!ctx) return;
+            
+            const data = { labels: [], temperature: [], ph: [], salinity: [] };
+            for (let i = 24; i >= 0; i--) {
+                const time = currentTime - (i * 60 * 60 * 1000);
+                data.labels.push(new Date(time));
+                data.temperature.push(simulator.getTemperature(time));
+                data.ph.push(simulator.getPh(time));
+                data.salinity.push(simulator.getSalinity(time));
+            }
+            
+            if (chartInstance) {
+                chartInstance.data.labels = data.labels;
+                chartInstance.data.datasets[0].data = data.temperature;
+                chartInstance.data.datasets[1].data = data.ph;
+                chartInstance.data.datasets[2].data = data.salinity;
+                chartInstance.update('none');
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            { label: 'Temperature (°C)', data: data.temperature, borderColor: 'rgb(0, 217, 255)', backgroundColor: 'rgba(0, 217, 255, 0.1)', tension: 0.4, fill: true, yAxisID: 'y' },
+                            { label: 'pH Level', data: data.ph, borderColor: 'rgb(0, 255, 136)', backgroundColor: 'rgba(0, 255, 136, 0.1)', tension: 0.4, fill: true, yAxisID: 'y1' },
+                            { label: 'Salinity (SG)', data: data.salinity, borderColor: 'rgb(0, 153, 255)', backgroundColor: 'rgba(0, 153, 255, 0.1)', tension: 0.4, fill: true, yAxisID: 'y2' }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { family: "'Inter', sans-serif", size: 12, weight: 600 }, color: '#e8e8e8' } },
+                            tooltip: { backgroundColor: 'rgba(30, 30, 30, 0.95)', titleColor: '#00d9ff', bodyColor: '#e8e8e8', borderColor: '#00d9ff', borderWidth: 2, padding: 12 }
+                        },
+                        scales: {
+                            x: { type: 'time', time: { unit: 'hour', displayFormats: { hour: 'HH:mm' } }, grid: { color: 'rgba(53, 53, 53, 0.5)' }, ticks: { color: '#b8b8b8' } },
+                            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Temperature (°C)', color: '#00d9ff' }, grid: { color: 'rgba(53, 53, 53, 0.5)' }, ticks: { color: '#b8b8b8' } },
+                            y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'pH Level', color: '#00ff88' }, grid: { drawOnChartArea: false }, ticks: { color: '#b8b8b8' } },
+                            y2: { type: 'linear', display: false }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function updateActivityLog(currentTime) {
+            const logContainer = document.getElementById('activityLog');
+            if (!logContainer) return;
+            
+            const events = logGenerator.generateLog(currentTime);
+            const categoryColors = {
+                'FEEDING': 'bg-blue-500',
+                'CLIMATE': 'bg-orange-500',
+                'LIGHTING': 'bg-yellow-500',
+                'MONITORING': 'bg-green-500',
+                'SYSTEM': 'bg-red-500'
+            };
+            
+            logContainer.innerHTML = events.map(event => {
+                const d = new Date(event.timestamp);
+                const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+                return `
+                    <div class="flex gap-4 p-3 bg-black/40 rounded-xl border border-neutral-800/50 hover:bg-neutral-900/50 transition-colors">
+                        <div class="text-[10px] font-mono text-neutral-600 whitespace-nowrap">${dateStr}</div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-bold text-red-400">${event.action}</span>
+                                <span class="${categoryColors[event.category]} text-black text-[9px] px-2 py-0.5 rounded font-bold">${event.category}</span>
+                            </div>
+                            <div class="text-xs text-neutral-400">${event.details}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function showView(view) {
+            const home = document.getElementById('home-view');
+            const about = document.getElementById('about-view');
+            const navAbout = document.getElementById('nav-about');
+
+            if (view === 'home') {
+                home.classList.remove('hidden-view');
+                about.classList.add('hidden-view');
+                navAbout.classList.remove('bg-white', 'text-black', 'border-white');
+            } else {
+                home.classList.add('hidden-view');
+                about.classList.remove('hidden-view');
+                navAbout.classList.add('bg-white', 'text-black', 'border-white');
+            }
+        }
+
+        function copyToken() {
+            const text = "TBA";
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Contract address copied to clipboard");
+            });
+        }
+        
+        window.onload = () => {
+            lucide.createIcons();
+            updateAllData();
+            setInterval(updateAllData, 5000);
+        };
+    </script>
+</body>
+</html>
