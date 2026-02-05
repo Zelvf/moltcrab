@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRAB | Autonomous Crab Habitat</title>
+    
+    <!-- Social Meta Tags -->
+    <meta property="og:title" content="CRAB | Autonomous Crab Habitat">
+    <meta property="og:description" content="AI-Controlled Crab Ecosystem managed by MoltBot. Zero-human intervention.">
+    <meta property="og:image" content="https://files.catbox.moe/placeholder-crab-image.jpg">
+    <meta property="og:url" content="https://crab.ai">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CRAB | Autonomous Crab Habitat">
+    <meta name="twitter:description" content="AI-Controlled Crab Ecosystem managed by MoltBot. Zero-human intervention.">
+    <meta name="twitter:image" content="https://files.catbox.moe/placeholder-crab-image.jpg">
+
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦀</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -212,9 +225,30 @@
                             <div class="text-xl font-mono font-bold text-white mb-1">ACTIVE</div>
                             <span class="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded font-bold">AUTO</span>
                         </div>
+                        
+                        <!-- NEW CONTROLS -->
+                        <div class="bg-black/40 p-4 rounded-xl border border-neutral-800/50">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">🔄</span>
+                                <span class="text-xs font-bold text-red-400">Water Pump</span>
+                            </div>
+                            <div class="text-xl font-mono font-bold text-white mb-1" id="control-water-pump">IDLE</div>
+                            <div class="flex gap-2">
+                                <span class="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded font-bold">AUTO</span>
+                                <span class="text-[10px] bg-purple-500 text-black px-2 py-0.5 rounded font-bold">50%</span>
+                            </div>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-xl border border-neutral-800/50">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">📅</span>
+                                <span class="text-xs font-bold text-red-400">Last Water Change</span>
+                            </div>
+                            <div class="text-xl font-mono font-bold text-white mb-1" id="control-last-change">3d ago</div>
+                            <span class="text-[10px] bg-neutral-700 text-white px-2 py-0.5 rounded font-bold">TRACKING</span>
+                        </div>
                     </div>
                 </div>
-
+                
                 <!-- Water Quality -->
                 <div class="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 shadow-xl">
                     <h3 class="text-[10px] font-bold mb-4 flex items-center gap-2 text-neutral-500 uppercase tracking-[0.2em] font-mono">
@@ -324,6 +358,7 @@
                             <li><span class="text-white font-bold">Lighting:</span> LED Strip (UV + White)</li>
                             <li><span class="text-white font-bold">Heating:</span> 50W Aquarium Heater</li>
                             <li><span class="text-white font-bold">Feeder:</span> Servo Auto-Dispenser</li>
+                            <li><span class="text-white font-bold">Water Pump:</span> Peristaltic Pump (50% change)</li>
                         </ul>
                     </div>
                     <div class="bg-black/40 p-4 rounded-xl border border-neutral-800">
@@ -462,7 +497,7 @@
                         <a href="https://x.com/crabproject" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold transition-colors">
                             𝕏 Twitter
                         </a>
-                      
+                        
                     </div>
                 </div>
             </div>
@@ -546,6 +581,36 @@
                 if (hour < 18) return `${18 - hour}h ${60 - new Date(time).getMinutes()}m`;
                 return `${24 - hour + 8}h ${60 - new Date(time).getMinutes()}m`;
             }
+
+            // New Water Change Logic
+            getWaterPumpStatus(time) {
+                // Every 7 days (Sundays) at 10:00 AM for 30 mins
+                const date = new Date(time);
+                if (date.getDay() === 0 && date.getHours() === 10 && date.getMinutes() < 30) {
+                    return 'ACTIVE';
+                }
+                return 'IDLE';
+            }
+
+            getTimeSinceWaterChange(time) {
+                const date = new Date(time);
+                // Calculate previous Sunday 10:30
+                const prevSunday = new Date(date);
+                prevSunday.setDate(date.getDate() - date.getDay());
+                prevSunday.setHours(10, 30, 0, 0);
+
+                // If today is Sunday and before 10:30, use last week's Sunday
+                if (prevSunday > date) {
+                    prevSunday.setDate(prevSunday.getDate() - 7);
+                }
+                
+                const diff = date - prevSunday;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                
+                if (days > 0) return `${days}d ago`;
+                return `${hours}h ago`;
+            }
         }
         
         class ActivityLogGenerator {
@@ -574,6 +639,12 @@
                     system: [
                         { action: 'System health check passed', details: 'All sensors reporting normally', category: 'SYSTEM' },
                         { action: 'Daily backup completed', details: 'Environmental data synced to cloud storage', category: 'SYSTEM' }
+                    ],
+                    maintenance: [
+                        { action: '50% water change initiated', details: 'Peristaltic pump removing 4 gallons', category: 'MAINTENANCE' },
+                        { action: 'Fresh water replacement started', details: 'Adding 4 gallons pre-conditioned saltwater', category: 'MAINTENANCE' },
+                        { action: 'Water change cycle completed', details: 'Exchanged 50% volume successfully', category: 'MAINTENANCE' },
+                        { action: 'Post-change monitoring active', details: 'Verifying salinity and temp stability', category: 'MAINTENANCE' }
                     ]
                 };
                 
@@ -589,15 +660,24 @@
                 for (let d = 0; d < 2; d++) {
                     for (let h = 0; h < 24; h++) {
                         const time = currentTime - (d * 24 * 60 * 60 * 1000) - (h * 60 * 60 * 1000);
-                        const m = new Date(time).getMinutes();
+                        const dateObj = new Date(time);
+                        const m = dateObj.getMinutes();
+                        const day = dateObj.getDay();
+
+                        // Regular Events
                         if (h === 8 || h === 18) events.push(this.generateEvent(time, 'feeding'));
                         if (h === 6) events.push(this.generateEvent(time, 'lighting'));
                         if (h === 20) events.push(this.generateEvent(time, 'lighting'));
                         if (m % 30 === 0) events.push(this.generateEvent(time, 'monitoring'));
-                        if (Math.random() < 0.1) {
-                            events.push(this.generateEvent(time, 'temperature'));
-                        }
+                        if (Math.random() < 0.1) events.push(this.generateEvent(time, 'temperature'));
                         if (m === 12 && h % 6 === 0) events.push(this.generateEvent(time, 'system'));
+
+                        // Maintenance Events (Sundays)
+                        if (day === 0) {
+                            if (h === 10 && m === 0) events.push(this.generateEvent(time, 'maintenance')); // Start
+                            if (h === 10 && m === 15) events.push(this.generateEvent(time, 'maintenance')); // Middle
+                            if (h === 10 && m === 30) events.push(this.generateEvent(time, 'maintenance')); // End
+                        }
                     }
                 }
                 return events.filter(e => e !== null).sort((a, b) => b.timestamp - a.timestamp).slice(0, 25);
@@ -628,6 +708,8 @@
             document.getElementById('control-light').textContent = Math.floor(lightIntensity) + '%';
             document.getElementById('control-heater').textContent = simulator.getHeaterStatus(now);
             document.getElementById('control-feeder').textContent = simulator.shouldFeed(now) ? 'ACTIVE' : 'IDLE';
+            document.getElementById('control-water-pump').textContent = simulator.getWaterPumpStatus(now);
+            document.getElementById('control-last-change').textContent = simulator.getTimeSinceWaterChange(now);
             
             document.getElementById('wq-temp').textContent = temp.toFixed(1) + '°C';
             document.getElementById('wq-ph').textContent = ph.toFixed(1);
@@ -699,7 +781,8 @@
                 'CLIMATE': 'bg-orange-500',
                 'LIGHTING': 'bg-yellow-500',
                 'MONITORING': 'bg-green-500',
-                'SYSTEM': 'bg-red-500'
+                'SYSTEM': 'bg-red-500',
+                'MAINTENANCE': 'bg-purple-500'
             };
             
             logContainer.innerHTML = events.map(event => {
