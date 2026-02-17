@@ -177,7 +177,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, onSnapshot, collection, query, orderBy, limit, addDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, orderBy, limit, addDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyDQrdHUBIThQT8og57nfG47MhnqAXuBk5E",
@@ -189,7 +189,7 @@
           measurementId: "G-HV1BKVSJ79"
         };
 
-        let app, db, statusRef, logsRef;
+        let app, db, statusRef, adminRef, logsRef;
         let currentState = {};
         let logDocs = []; // Store doc references for deletion
 
@@ -197,6 +197,7 @@
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             statusRef = doc(db, "habitat", "status");
+            adminRef = doc(db, "habitat", "admin_overrides");
             logsRef = collection(db, "habitat_logs");
 
             document.getElementById('conn-banner').innerHTML = '<span class="text-emerald-500 text-xs font-mono font-bold">CONNECTED TO FIREBASE</span>';
@@ -279,11 +280,8 @@
                     }
                 };
 
-                // Recalculate lastWaterChange timestamp from days ago
-                const daysAgo = getNum('f-lastWaterChangeDays');
-                updates.lastWaterChange = Date.now() - (daysAgo * 24 * 60 * 60 * 1000);
-
-                await updateDoc(statusRef, updates);
+                // Write to admin_overrides doc — server picks it up next cycle
+                await setDoc(adminRef, updates);
 
                 statusEl.textContent = 'SAVED';
                 statusEl.className = 'text-[10px] font-mono text-emerald-500 uppercase tracking-widest';
@@ -310,9 +308,9 @@
                     details
                 });
 
-                // Also increment AI decisions counter
+                // Also increment AI decisions counter via override
                 const currentDecisions = getNum('f-aiDecisions') || 0;
-                await updateDoc(statusRef, { aiDecisions: currentDecisions + 1 });
+                await setDoc(adminRef, { aiDecisions: currentDecisions + 1 });
 
                 // Clear form
                 document.getElementById('log-action').value = '';
