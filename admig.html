@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAB Admin Panel</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F9F0;</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root { --neutral-950: #0a0a0a; }
+        body { background-color: var(--neutral-950); color: #f5f5f5; font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 10px; }
+        input[type="number"], input[type="text"], textarea {
+            background: #111; border: 1px solid #333; color: #fff; border-radius: 8px; padding: 8px 12px;
+            font-family: 'JetBrains Mono', monospace; font-size: 13px; width: 100%;
+        }
+        input:focus, textarea:focus { outline: none; border-color: #ef4444; }
+        select {
+            background: #111; border: 1px solid #333; color: #fff; border-radius: 8px; padding: 8px 12px;
+            font-family: 'JetBrains Mono', monospace; font-size: 13px; width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Nav -->
+    <nav class="border-b border-neutral-800 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="text-neutral-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">&larr; Back to Site</a>
+                <div class="w-[1px] h-4 bg-neutral-800"></div>
+                <span class="text-[10px] font-mono text-red-500 uppercase tracking-[0.2em] font-bold">ADMIN_PANEL</span>
+            </div>
+            <div id="save-status" class="text-[10px] font-mono text-neutral-600 uppercase tracking-widest"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        <!-- Connection Status -->
+        <div id="conn-banner" class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-center">
+            <span class="text-yellow-500 text-xs font-mono font-bold">CONNECTING TO FIREBASE...</span>
+        </div>
+
+        <!-- Habitat State Editor -->
+        <section class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-[10px] font-mono text-neutral-500 uppercase tracking-[0.2em] font-bold">HABITAT_STATE_EDITOR</h2>
+                <button onclick="saveState()" class="px-5 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors">Save All Changes</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Counters & Meta -->
+                <div class="space-y-3">
+                    <h3 class="text-[9px] font-mono text-red-400 uppercase tracking-widest font-bold mb-2">Counters & Meta</h3>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">AI Decisions</label>
+                        <input type="number" id="f-aiDecisions" min="0" step="1">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Days Running</label>
+                        <input type="number" id="f-daysRunning" min="0" step="1">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Last Water Change (days ago)</label>
+                        <input type="number" id="f-lastWaterChangeDays" min="0" step="1">
+                    </div>
+                </div>
+
+                <!-- Sensor Values -->
+                <div class="space-y-3">
+                    <h3 class="text-[9px] font-mono text-red-400 uppercase tracking-widest font-bold mb-2">Sensor Values</h3>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Temperature (*C)</label>
+                        <input type="number" id="f-temp" step="0.1">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">pH Level</label>
+                        <input type="number" id="f-ph" step="0.01">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Salinity (SG)</label>
+                        <input type="number" id="f-salinity" step="0.001">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Dissolved Oxygen (mg/L)</label>
+                        <input type="number" id="f-dissolvedOxygen" step="0.1">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Ammonia (ppm)</label>
+                        <input type="number" id="f-ammonia" step="0.001">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Nitrite (ppm)</label>
+                        <input type="number" id="f-nitrite" step="0.001">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Light Intensity (%)</label>
+                        <input type="number" id="f-light" min="0" max="100" step="1">
+                    </div>
+                </div>
+
+                <!-- Controls & Crab Weights -->
+                <div class="space-y-3">
+                    <h3 class="text-[9px] font-mono text-red-400 uppercase tracking-widest font-bold mb-2">Controls</h3>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Heater</label>
+                        <select id="f-heaterOn"><option value="true">ACTIVE</option><option value="false">IDLE</option></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Water Pump</label>
+                        <select id="f-pumpActive"><option value="true">DRAINING</option><option value="false">IDLE</option></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Feeder</label>
+                        <select id="f-feedingNow"><option value="true">DISPENSING</option><option value="false">IDLE</option></select>
+                    </div>
+
+                    <h3 class="text-[9px] font-mono text-red-400 uppercase tracking-widest font-bold mb-2 pt-3">Crab Weights (g)</h3>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Crab A</label>
+                        <input type="number" id="f-crabA" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Crab B</label>
+                        <input type="number" id="f-crabB" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Crab C</label>
+                        <input type="number" id="f-crabC" step="0.1" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+                <button onclick="saveState()" class="px-5 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors">Save All Changes</button>
+            </div>
+        </section>
+
+        <!-- Activity Log Manager -->
+        <section class="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6">
+            <h2 class="text-[10px] font-mono text-neutral-500 uppercase tracking-[0.2em] font-bold mb-6">AI_ACTIVITY_LOG_MANAGER</h2>
+
+            <!-- Add New Log -->
+            <div class="bg-black/40 border border-neutral-800 rounded-xl p-5 mb-6">
+                <h3 class="text-xs font-bold text-red-400 mb-4">Add New Log Entry</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+                    <div>
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Category</label>
+                        <select id="log-category">
+                            <option value="FEEDING">FEEDING</option>
+                            <option value="CLIMATE">CLIMATE</option>
+                            <option value="LIGHTING">LIGHTING</option>
+                            <option value="MAINTENANCE">MAINTENANCE</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Action (Title)</label>
+                        <input type="text" id="log-action" placeholder="e.g. Heater Activated">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-[10px] text-neutral-500 font-mono uppercase tracking-widest block mb-1">Details (Body)</label>
+                    <textarea id="log-details" rows="2" placeholder="e.g. Temperature dropped to 21.5C. Engaging thermal regulation..."></textarea>
+                </div>
+                <button onclick="addLogEntry()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors">Send Log Entry</button>
+            </div>
+
+            <!-- Existing Logs -->
+            <div class="space-y-2" id="admin-logs">
+                <div class="text-neutral-600 text-xs font-mono text-center p-4">Loading logs...</div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, onSnapshot, collection, query, orderBy, limit, addDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyDQrdHUBIThQT8og57nfG47MhnqAXuBk5E",
+          authDomain: "reflected-ion-477518-u0.firebaseapp.com",
+          projectId: "reflected-ion-477518-u0",
+          storageBucket: "reflected-ion-477518-u0.firebasestorage.app",
+          messagingSenderId: "644595470912",
+          appId: "1:644595470912:web:8015bf91bdfa2934a9c5a5",
+          measurementId: "G-HV1BKVSJ79"
+        };
+
+        let app, db, statusRef, logsRef;
+        let currentState = {};
+        let logDocs = []; // Store doc references for deletion
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            statusRef = doc(db, "habitat", "status");
+            logsRef = collection(db, "habitat_logs");
+
+            document.getElementById('conn-banner').innerHTML = '<span class="text-emerald-500 text-xs font-mono font-bold">CONNECTED TO FIREBASE</span>';
+            document.getElementById('conn-banner').className = 'bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-center';
+
+            // Listen for state changes
+            onSnapshot(statusRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentState = docSnap.data();
+                    populateFields(currentState);
+                }
+            });
+
+            // Listen for log changes
+            const logsQuery = query(logsRef, orderBy("timestamp", "desc"), limit(50));
+            onSnapshot(logsQuery, (snapshot) => {
+                logDocs = snapshot.docs;
+                renderLogs(logDocs);
+            });
+
+        } catch (e) {
+            document.getElementById('conn-banner').innerHTML = '<span class="text-red-500 text-xs font-mono font-bold">FIREBASE CONNECTION FAILED: ' + e.message + '</span>';
+            document.getElementById('conn-banner').className = 'bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-center';
+        }
+
+        function populateFields(data) {
+            setVal('f-aiDecisions', data.aiDecisions);
+            setVal('f-daysRunning', data.daysRunning);
+            setVal('f-lastWaterChangeDays', data.lastWaterChangeDays);
+            setVal('f-temp', data.temp !== undefined ? data.temp.toFixed(1) : '');
+            setVal('f-ph', data.ph !== undefined ? data.ph.toFixed(2) : '');
+            setVal('f-salinity', data.salinity !== undefined ? data.salinity.toFixed(3) : '');
+            setVal('f-dissolvedOxygen', data.dissolvedOxygen !== undefined ? data.dissolvedOxygen.toFixed(1) : '');
+            setVal('f-ammonia', data.ammonia !== undefined ? data.ammonia.toFixed(3) : '');
+            setVal('f-nitrite', data.nitrite !== undefined ? data.nitrite.toFixed(3) : '');
+            setVal('f-light', data.light);
+            setVal('f-heaterOn', String(!!data.heaterOn));
+            setVal('f-pumpActive', String(!!data.pumpActive));
+            setVal('f-feedingNow', String(!!data.feedingNow));
+            if (data.crabWeights) {
+                setVal('f-crabA', data.crabWeights.crabA !== undefined ? data.crabWeights.crabA.toFixed(1) : '');
+                setVal('f-crabB', data.crabWeights.crabB !== undefined ? data.crabWeights.crabB.toFixed(1) : '');
+                setVal('f-crabC', data.crabWeights.crabC !== undefined ? data.crabWeights.crabC.toFixed(1) : '');
+            }
+        }
+
+        function setVal(id, val) {
+            const el = document.getElementById(id);
+            if (el && val !== undefined && val !== null) el.value = val;
+        }
+
+        function getNum(id) {
+            return parseFloat(document.getElementById(id).value);
+        }
+
+        window.saveState = async function() {
+            const statusEl = document.getElementById('save-status');
+            statusEl.textContent = 'SAVING...';
+            statusEl.className = 'text-[10px] font-mono text-yellow-500 uppercase tracking-widest';
+
+            try {
+                const updates = {
+                    aiDecisions: getNum('f-aiDecisions'),
+                    daysRunning: getNum('f-daysRunning'),
+                    lastWaterChangeDays: getNum('f-lastWaterChangeDays'),
+                    temp: getNum('f-temp'),
+                    ph: getNum('f-ph'),
+                    salinity: getNum('f-salinity'),
+                    dissolvedOxygen: getNum('f-dissolvedOxygen'),
+                    ammonia: getNum('f-ammonia'),
+                    nitrite: getNum('f-nitrite'),
+                    light: getNum('f-light'),
+                    heaterOn: document.getElementById('f-heaterOn').value === 'true',
+                    pumpActive: document.getElementById('f-pumpActive').value === 'true',
+                    feedingNow: document.getElementById('f-feedingNow').value === 'true',
+                    crabWeights: {
+                        crabA: getNum('f-crabA'),
+                        crabB: getNum('f-crabB'),
+                        crabC: getNum('f-crabC')
+                    }
+                };
+
+                // Recalculate lastWaterChange timestamp from days ago
+                const daysAgo = getNum('f-lastWaterChangeDays');
+                updates.lastWaterChange = Date.now() - (daysAgo * 24 * 60 * 60 * 1000);
+
+                await updateDoc(statusRef, updates);
+
+                statusEl.textContent = 'SAVED';
+                statusEl.className = 'text-[10px] font-mono text-emerald-500 uppercase tracking-widest';
+                setTimeout(() => { statusEl.textContent = ''; }, 3000);
+            } catch (e) {
+                statusEl.textContent = 'SAVE FAILED: ' + e.message;
+                statusEl.className = 'text-[10px] font-mono text-red-500 uppercase tracking-widest';
+            }
+        };
+
+        window.addLogEntry = async function() {
+            const category = document.getElementById('log-category').value;
+            const action = document.getElementById('log-action').value.trim();
+            const details = document.getElementById('log-details').value.trim();
+
+            if (!action) { alert('Action (title) is required'); return; }
+            if (!details) { alert('Details (body) is required'); return; }
+
+            try {
+                await addDoc(logsRef, {
+                    timestamp: Date.now(),
+                    category,
+                    action,
+                    details
+                });
+
+                // Also increment AI decisions counter
+                const currentDecisions = getNum('f-aiDecisions') || 0;
+                await updateDoc(statusRef, { aiDecisions: currentDecisions + 1 });
+
+                // Clear form
+                document.getElementById('log-action').value = '';
+                document.getElementById('log-details').value = '';
+            } catch (e) {
+                alert('Failed to add log: ' + e.message);
+            }
+        };
+
+        window.deleteLog = async function(docId) {
+            if (!confirm('Delete this log entry?')) return;
+            try {
+                await deleteDoc(doc(db, "habitat_logs", docId));
+            } catch (e) {
+                alert('Failed to delete: ' + e.message);
+            }
+        };
+
+        const categoryColors = {
+            'FEEDING': 'bg-blue-500',
+            'CLIMATE': 'bg-orange-500',
+            'LIGHTING': 'bg-yellow-500',
+            'MAINTENANCE': 'bg-purple-500'
+        };
+
+        function renderLogs(docs) {
+            const container = document.getElementById('admin-logs');
+
+            if (!docs || docs.length === 0) {
+                container.innerHTML = '<div class="text-neutral-600 text-xs font-mono text-center p-4">No logs found</div>';
+                return;
+            }
+
+            container.innerHTML = docs.map(d => {
+                const log = d.data();
+                const date = new Date(log.timestamp);
+                const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Europe/London' });
+                const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'Europe/London' });
+                const badge = categoryColors[log.category] || 'bg-gray-600';
+
+                return `
+                    <div class="flex gap-3 p-3 bg-black/40 rounded-xl border border-neutral-800/50 items-start group">
+                        <div class="flex-shrink-0 text-right" style="min-width: 80px;">
+                            <div class="text-[10px] font-mono text-neutral-600">${dateStr}</div>
+                            <div class="text-[10px] font-mono text-neutral-500">${timeStr}</div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-bold text-red-400">${escapeHtml(log.action)}</span>
+                                <span class="${badge} text-black text-[9px] px-2 py-0.5 rounded font-bold">${escapeHtml(log.category)}</span>
+                            </div>
+                            <div class="text-xs text-neutral-400">${escapeHtml(log.details)}</div>
+                        </div>
+                        <button onclick="deleteLog('${d.id}')" class="flex-shrink-0 opacity-30 group-hover:opacity-100 transition-opacity px-2 py-1 bg-red-900/50 hover:bg-red-700 rounded text-[9px] font-bold text-red-300 uppercase tracking-wider">Delete</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
